@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -24,6 +24,10 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The default also installs the long-retired 'tools' package, which Google
+          # no longer serves (sdkmanager: "Failed to find package 'tools'"). Not needed for builds.
+          packages: ''
 
       - name: Accept SDK licenses
         run: yes | sdkmanager --licenses || true
