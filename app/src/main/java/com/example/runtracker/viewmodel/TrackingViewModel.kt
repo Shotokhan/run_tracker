@@ -99,6 +99,12 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
         _goalReachedEvent.value = false
     }
 
+    fun deleteSession(sessionId: Long) {
+        viewModelScope.launch {
+            (getApplication<Application>() as RunTrackerApp).database.sessionDao().deleteSession(sessionId)
+        }
+    }
+
     suspend fun getSplitsForSession(sessionId: Long) =
         (getApplication<Application>() as RunTrackerApp).database.sessionDao().getSplitsForSession(sessionId)
 

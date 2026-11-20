@@ -49,6 +49,23 @@ installed locally.
 5. On first launch, grant the location permission (and notification
    permission on Android 13+) when prompted.
 
+### Updating the app without losing your runs
+
+Android only installs an APK over an existing app if both are signed with
+the **same key**. GitHub's runners create a brand-new debug key on every
+run, so early builds could not be installed as updates. From this version on,
+a fixed debug key (`app/debug.keystore`) is committed to the repo and used
+for every build, so **all future builds install in-place as updates and keep
+your saved runs** (the database schema has not changed either).
+
+One-time caveat: the build you installed *before* this version was signed
+with a throwaway key that no longer exists, so installing this version over
+it will fail with "App not installed" / a signature conflict. Uninstalling
+the old app deletes its data, so before doing that, save any runs you want
+to keep (e.g. your screenshots). After this one transition, updates are
+seamless. (The key is public in the repo; that's fine for a personal
+sideloaded app, but don't reuse this approach for anything published.)
+
 ### What the workflow does, step by step
 
 - Checks out the code and sets up JDK 17 + the Android SDK on a GitHub-hosted

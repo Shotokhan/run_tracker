@@ -12,6 +12,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import com.example.runtracker.util.ShareText
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,22 +49,58 @@ fun SessionDetailScreen(
 ) {
     var session by remember { mutableStateOf<SessionEntity?>(null) }
     var splits by remember { mutableStateOf<List<SplitEntity>>(emptyList()) }
+    var confirmDelete by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     LaunchedEffect(sessionId) {
         session = viewModel.getSession(sessionId)
         splits = viewModel.getSplitsForSession(sessionId)
     }
 
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Delete this run?") },
+            text = { Text("This permanently removes the run and its splits.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDelete = false
+                    viewModel.deleteSession(sessionId)
+                    onBack()
+                }) { Text("Delete") }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } }
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-        Row {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
             IconButton(onClick = onBack) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
             }
             Text(
                 "Run details",
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 8.dp).weight(1f)
             )
+            IconButton(
+                enabled = session != null,
+                onClick = {
+                    session?.let { s ->
+                        val send = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, ShareText.build(s, splits))
+                        }
+                        context.startActivity(Intent.createChooser(send, "Share run"))
+                    }
+                }
+            ) { Icon(Icons.Filled.Share, contentDescription = "Share") }
+            IconButton(onClick = { confirmDelete = true }) {
+                Icon(Icons.Filled.Delete, contentDescription = "Delete")
+            }
         }
         Spacer(Modifier.height(16.dp))
 
